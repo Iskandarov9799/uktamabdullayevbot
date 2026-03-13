@@ -1,8 +1,5 @@
-from aiogram.types import (
-    ReplyKeyboardMarkup, KeyboardButton,
-    InlineKeyboardMarkup, InlineKeyboardButton,
-    WebAppInfo
-)
+from aiogram.types import (ReplyKeyboardMarkup, KeyboardButton,
+                            InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo)
 from config import config
 
 def phone_keyboard():
@@ -23,9 +20,9 @@ def main_menu_keyboard():
     )
 
 def cancel_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="❌ Bekor qilish", callback_data="payment:cancel")]
-    ])
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="❌ Bekor qilish", callback_data="payment:cancel")
+    ]])
 
 def back_keyboard():
     return ReplyKeyboardMarkup(
@@ -55,74 +52,110 @@ def skip_image_keyboard():
         resize_keyboard=True
     )
 
-def tarix_category_keyboard():
+# ── Asosiy: fan tanlash ────────────────────────────────────
+def tarix_subjects_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📌 Mavzulashtirilgan", callback_data="tarix:cat:mavzu")],
-        [InlineKeyboardButton(text="🏫 Sinflar bo'yicha",  callback_data="tarix:cat:sinf")],
-        [InlineKeyboardButton(text="🔀 Aralash test",      callback_data="tarix:cat:aralash")],
-        [InlineKeyboardButton(text="🎓 Atestatsiya",       callback_data="tarix:cat:attestation")],
+        [InlineKeyboardButton(text="🌍 Jahon tarixi",        callback_data="tarix:sub:jahon")],
+        [InlineKeyboardButton(text="🇺🇿 O'zbekiston tarixi", callback_data="tarix:sub:uzbekiston")],
     ])
 
-def tarix_topics_keyboard():
+# ── Kategoriya ─────────────────────────────────────────────
+def tarix_category_keyboard(subject: str):
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📌 Mavzulashtirilgan", callback_data=f"tarix:cat:{subject}:mavzu")],
+        [InlineKeyboardButton(text="🏫 Sinflar bo'yicha",  callback_data=f"tarix:cat:{subject}:sinf")],
+        [InlineKeyboardButton(text="🔀 Aralash test",      callback_data=f"tarix:cat:{subject}:aralash")],
+        [InlineKeyboardButton(text="🎓 Atestatsiya",       callback_data=f"tarix:cat:{subject}:attestation")],
+        [InlineKeyboardButton(text="🔙 Orqaga",            callback_data="tarix:back:subjects")],
+    ])
+
+# ── Mavzular ───────────────────────────────────────────────
+def jahon_topics_keyboard():
     buttons = []
-    for key, label in config.TARIX_TOPICS.items():
-        buttons.append([InlineKeyboardButton(text=label, callback_data=f"tarix:topic:{key}")])
+    for key, label in config.JAHON_TOPICS.items():
+        buttons.append([InlineKeyboardButton(text=label, callback_data=f"tarix:topic:jahon:{key}")])
+    buttons.append([InlineKeyboardButton(text="🔙 Orqaga", callback_data="tarix:back:cat:jahon")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def grades_keyboard(subject='tarix'):
+def uzbekiston_topics_keyboard():
     buttons = []
-    row = []
-    for key, label in config.GRADES.items():
-        row.append(InlineKeyboardButton(text=label, callback_data=f"{subject}:grade:{key}"))
-        if len(row) == 2:
-            buttons.append(row); row = []
+    for key, label in config.UZBEKISTON_TOPICS.items():
+        buttons.append([InlineKeyboardButton(text=label, callback_data=f"tarix:topic:uzbekiston:{key}")])
+    buttons.append([InlineKeyboardButton(text="🔙 Orqaga", callback_data="tarix:back:cat:uzbekiston")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+# ── Sinflar ────────────────────────────────────────────────
+def grades_keyboard(subject: str):
+    grades = config.JAHON_GRADES if subject == 'jahon' else config.UZBEKISTON_GRADES
+    buttons, row = [], []
+    for key, label in grades.items():
+        row.append(InlineKeyboardButton(text=label, callback_data=f"tarix:grade:{subject}:{key}"))
+        if len(row) == 2: buttons.append(row); row = []
     if row: buttons.append(row)
+    buttons.append([InlineKeyboardButton(text="🔙 Orqaga", callback_data=f"tarix:back:cat:{subject}")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def difficulty_keyboard(subject='tarix', category='aralash', subcategory=None):
+# ── Qiyinlik ───────────────────────────────────────────────
+def difficulty_keyboard(subject: str, category: str, subcategory: str = None):
     sub = subcategory or ''
+    if category == 'aralash':
+        back_data = f"tarix:back:cat:{subject}"
+    else:
+        back_data = f"tarix:back:topic:{subject}:{category}:{sub}"
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🟢 Oson",  callback_data=f"{subject}:diff:{category}:{sub}:easy")],
-        [InlineKeyboardButton(text="🟡 O'rta", callback_data=f"{subject}:diff:{category}:{sub}:medium")],
-        [InlineKeyboardButton(text="🔴 Qiyin", callback_data=f"{subject}:diff:{category}:{sub}:hard")],
+        [InlineKeyboardButton(text="🟢 Oson",   callback_data=f"tarix:diff:{subject}:{category}:{sub}:easy")],
+        [InlineKeyboardButton(text="🟡 O'rta",  callback_data=f"tarix:diff:{subject}:{category}:{sub}:medium")],
+        [InlineKeyboardButton(text="🔴 Qiyin",  callback_data=f"tarix:diff:{subject}:{category}:{sub}:hard")],
+        [InlineKeyboardButton(text="🔙 Orqaga", callback_data=back_data)],
     ])
 
+# ── Mini App ───────────────────────────────────────────────
 def miniapp_keyboard(url: str):
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🚀 Testni boshlash", web_app=WebAppInfo(url=url))]
-    ])
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="🚀 Testni boshlash", web_app=WebAppInfo(url=url))
+    ]])
 
+# ── To'lov ─────────────────────────────────────────────────
 def retry_buy_keyboard(access_key: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-            text=f"💳 {config.PRICE_RETRY:,} so'm to'lash",
-            callback_data=f"payment:retry:{access_key}"
-        )],
+        [InlineKeyboardButton(text=f"💳 {config.PRICE_RETRY:,} so'm to'lash", callback_data=f"buy:retry:{access_key}")],
         [InlineKeyboardButton(text="❌ Bekor qilish", callback_data="payment:cancel")],
     ])
 
 def attestation_buy_keyboard(subject: str):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-            text=f"💳 {config.PRICE_ATTESTATION:,} so'm to'lash",
-            callback_data=f"payment:attestation:{subject}"
-        )],
+        [InlineKeyboardButton(text=f"💳 {config.PRICE_ATTESTATION:,} so'm to'lash", callback_data=f"buy:attestation:{subject}")],
         [InlineKeyboardButton(text="❌ Bekor qilish", callback_data="payment:cancel")],
     ])
 
-def attestation_format_keyboard():
+def attestation_format_keyboard(subject: str = ''):
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📱 Mini App", callback_data="attest:format:miniapp")],
-        [InlineKeyboardButton(text="📄 PDF",      callback_data="attest:format:pdf")],
+        [InlineKeyboardButton(text="📱 Mini App", callback_data=f"attest:format:miniapp:{subject}")],
+        [InlineKeyboardButton(text="📄 PDF",      callback_data=f"attest:format:pdf:{subject}")],
     ])
 
+def payment_confirm_keyboard(purchase_id: int):
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="✅ Tasdiqlash", callback_data=f"confirm_pay:{purchase_id}"),
+        InlineKeyboardButton(text="❌ Rad etish",  callback_data=f"reject_pay:{purchase_id}"),
+    ]])
+
+# ── Atestatsiya (asosiy menyu) ─────────────────────────────
+def attestation_subjects_keyboard():
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🌍 Jahon tarixi",        callback_data="attest:sub:jahon")],
+        [InlineKeyboardButton(text="🇺🇿 O'zbekiston tarixi", callback_data="attest:sub:uzbekiston")],
+    ])
+
+# ── Admin: savol qo'shish ──────────────────────────────────
 def subject_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📜 Tarix", callback_data="addq:subject:tarix")],
-        [InlineKeyboardButton(text="❌ Bekor", callback_data="addq:cancel")],
+        [InlineKeyboardButton(text="🌍 Jahon tarixi",        callback_data="addq:subject:jahon")],
+        [InlineKeyboardButton(text="🇺🇿 O'zbekiston tarixi", callback_data="addq:subject:uzbekiston")],
+        [InlineKeyboardButton(text="❌ Bekor",               callback_data="addq:cancel")],
     ])
 
-def addq_category_keyboard(subject):
+def addq_category_keyboard(subject: str):
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📌 Mavzulashtirilgan", callback_data="addq:cat:mavzu")],
         [InlineKeyboardButton(text="🏫 Sinflar",           callback_data="addq:cat:sinf")],
@@ -131,20 +164,20 @@ def addq_category_keyboard(subject):
         [InlineKeyboardButton(text="❌ Bekor",             callback_data="addq:cancel")],
     ])
 
-def addq_topic_keyboard():
+def addq_topic_keyboard(subject: str):
+    topics = config.JAHON_TOPICS if subject == 'jahon' else config.UZBEKISTON_TOPICS
     buttons = []
-    for key, label in config.TARIX_TOPICS.items():
+    for key, label in topics.items():
         buttons.append([InlineKeyboardButton(text=label, callback_data=f"addq:topic:{key}")])
     buttons.append([InlineKeyboardButton(text="❌ Bekor", callback_data="addq:cancel")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-def addq_grade_keyboard():
-    buttons = []
-    row = []
-    for key, label in config.GRADES.items():
+def addq_grade_keyboard(subject: str):
+    grades = config.JAHON_GRADES if subject == 'jahon' else config.UZBEKISTON_GRADES
+    buttons, row = [], []
+    for key, label in grades.items():
         row.append(InlineKeyboardButton(text=label, callback_data=f"addq:grade:{key}"))
-        if len(row) == 3:
-            buttons.append(row); row = []
+        if len(row) == 3: buttons.append(row); row = []
     if row: buttons.append(row)
     buttons.append([InlineKeyboardButton(text="❌ Bekor", callback_data="addq:cancel")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)

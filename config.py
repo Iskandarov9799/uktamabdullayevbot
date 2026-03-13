@@ -6,7 +6,6 @@ load_dotenv()
 
 @dataclass
 class Config:
-    # ── .env dan o'qiladi ───────────────────────────
     BOT_TOKEN:     str  = field(default_factory=lambda: os.getenv("BOT_TOKEN", ""))
     DATABASE_URL:  str  = field(default_factory=lambda: os.getenv("DATABASE_URL", ""))
     MINI_APP_URL:  str  = field(default_factory=lambda: os.getenv("MINI_APP_URL", ""))
@@ -20,31 +19,39 @@ class Config:
     PAYMENT_OWNER: str  = field(default_factory=lambda: os.getenv("PAYMENT_OWNER", "Karta egasi"))
     SOLUTION_URL:  str  = field(default_factory=lambda: os.getenv("SOLUTION_URL",  ""))
 
-    # ── Narxlar (so'm) ──────────────────────────────
     PRICE_RETRY:       int = 5_000
     PRICE_ATTESTATION: int = 15_000
-
-    # ── Test sozlamalari ────────────────────────────
     MIN_QUESTIONS:     int = 35
     ATTESTATION_COUNT: int = 35
 
-    # ── Fanlar ─────────────────────────────────────
     SUBJECTS = {
-        'tarix': '📜 Tarix',
+        'jahon':      '🌍 Jahon tarixi',
+        'uzbekiston': "🇺🇿 O'zbekiston tarixi",
     }
 
-    # ── Tarix bo'limlari ───────────────────────────
-    TARIX_TOPICS = {
-        'qadimgi':     "🏛 Qadimgi dunyo",
-        'oʻrta_asr':   "⚔️ O'rta asrlar",
-        'yangi':       "🏭 Yangi tarix",
-        'zamonaviy':   "🌐 Zamonaviy tarix",
-        'uzbekiston':  "🇺🇿 O'zbekiston tarixi",
+    JAHON_TOPICS = {
+        'qadimgi':   "🏛 Qadimgi dunyo",
+        'orta_asr':  "⚔️ O'rta asrlar",
+        'yangi':     "🏭 Yangi tarix",
+        'zamonaviy': "🌐 Zamonaviy tarix",
     }
 
-    GRADES = {
+    UZBEKISTON_TOPICS = {
+        'qadimgi':   "🏛 Qadimgi davr",
+        'orta_asr':  "⚔️ O'rta asrlar",
+        'yangi':     "🏭 Yangi tarix",
+        'zamonaviy': "🌐 Zamonaviy tarix",
+        'mustaqillik': "🇺🇿 Mustaqillik davri",
+    }
+
+    JAHON_GRADES = {
         '6': '6-sinf', '7': '7-sinf', '8': '8-sinf',
         '9': '9-sinf', '10': '10-sinf', '11': '11-sinf',
+    }
+
+    UZBEKISTON_GRADES = {
+        '7': '7-sinf', '8': '8-sinf', '9': '9-sinf',
+        '10': '10-sinf', '11': '11-sinf',
     }
 
     DIFFICULTIES = {
@@ -55,17 +62,12 @@ class Config:
 
     def validate(self):
         errors = []
-        if not self.BOT_TOKEN:
-            errors.append("❌ BOT_TOKEN — .env faylida yo'q!")
-        if not self.DATABASE_URL:
-            errors.append("❌ DATABASE_URL — .env faylida yo'q!")
-        if not self.ADMIN_IDS:
-            errors.append("❌ ADMIN_IDS — .env faylida yo'q!")
-        if not self.MINI_APP_URL:
-            errors.append("⚠️  MINI_APP_URL — .env faylida yo'q (mini app ishlamaydi)")
+        if not self.BOT_TOKEN:    errors.append("❌ BOT_TOKEN yo'q!")
+        if not self.DATABASE_URL: errors.append("❌ DATABASE_URL yo'q!")
+        if not self.ADMIN_IDS:    errors.append("❌ ADMIN_IDS yo'q!")
+        if not self.MINI_APP_URL: errors.append("⚠️  MINI_APP_URL yo'q")
         if errors:
-            for e in errors:
-                print(e)
+            for e in errors: print(e)
             if any("❌" in e for e in errors):
                 raise SystemExit("Bot ishga tushmadi — .env ni to'ldiring!")
 
